@@ -1,0 +1,44 @@
+import 'dart:io';
+
+import 'package:battery_plus/battery_plus.dart';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:flutter/material.dart';
+
+class DeviceService {
+  final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
+  final Battery _battery = Battery();
+
+  Future<Map<String, dynamic>> getDeviceInfo(BuildContext context) async {
+    final Map<String, dynamic> info = {};
+
+    if (Platform.isAndroid) {
+      AndroidDeviceInfo android = await _deviceInfo.androidInfo;
+
+      final batteryLevel = await _battery.batteryLevel;
+
+      final mediaQuery = MediaQuery.of(context);
+
+      info["Brand"] = android.brand;
+      info["Manufacturer"] = android.manufacturer;
+      info["Model"] = android.model;
+      info["Device"] = android.device;
+      info["Board"] = android.board;
+      info["Hardware"] = android.hardware;
+      info["Android Version"] = android.version.release;
+      info["SDK"] = android.version.sdkInt.toString();
+
+      info["Screen Width"] =
+          mediaQuery.size.width.toStringAsFixed(0);
+
+      info["Screen Height"] =
+          mediaQuery.size.height.toStringAsFixed(0);
+
+      info["Pixel Ratio"] =
+          mediaQuery.devicePixelRatio.toStringAsFixed(2);
+
+      info["Battery"] = "$batteryLevel%";
+    }
+
+    return info;
+  }
+}
