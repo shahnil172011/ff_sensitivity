@@ -1,0 +1,95 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../providers/settings_provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+
+class SettingsScreen extends StatelessWidget {
+  const SettingsScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    final settings = Provider.of<SettingsProvider>(context);
+
+    return Scaffold(
+      appBar: AppBar(title: const Text('Settings')),
+      body: ListView(
+        padding: const EdgeInsets.all(16.0),
+        children: [
+          SwitchListTile(
+            title: const Text('Dark Mode'),
+            value: settings.isDarkMode,
+            onChanged: (val) => settings.toggleDarkMode(),
+            secondary: const Icon(Icons.dark_mode),
+          ),
+          const Divider(),
+          ListTile(
+            title: const Text('Language'),
+            subtitle: Text(settings.language.toUpperCase()),
+            leading: const Icon(Icons.language),
+            onTap: () => _showLanguageDialog(context, settings),
+          ),
+          const Divider(),
+          ListTile(
+            title: const Text('Reset App Data'),
+            subtitle: const Text('Clear all profiles and history'),
+            leading: const Icon(Icons.reset_settings, color: Colors.red),
+            onTap: () => _showResetDialog(context, settings),
+          ),
+          const Divider(),
+          ListTile(
+            title: const Text('Clear History'),
+            subtitle: const Text('Remove all history entries'),
+            leading: const Icon(Icons.history_off, color: Colors.orange),
+            onTap: () {
+              Provider.of<HistoryProvider>(context, listen: false).clearHistory();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('History cleared'), backgroundColor: Colors.orange),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showLanguageDialog(BuildContext context, SettingsProvider settings) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Select Language'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(title: const Text('English'), onTap: () { settings.setLanguage('en'); Navigator.pop(context); }),
+            ListTile(title: const Text('Spanish'), onTap: () { settings.setLanguage('es'); Navigator.pop(context); }),
+            ListTile(title: const Text('Hindi'), onTap: () { settings.setLanguage('hi'); Navigator.pop(context); }),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showResetDialog(BuildContext context, SettingsProvider settings) {
+    showDialog(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: const Text('Reset All Data?'),
+        content: const Text('This will delete all profiles and history. This action cannot be undone.'),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text('Cancel')),
+          TextButton(
+            onPressed: () {
+              settings.resetAppData();
+              Navigator.pop(context);
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('All data reset'), backgroundColor: Colors.red),
+              );
+            },
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('RESET'),
+          ),
+        ],
+      ),
+    );
+  }
+}
