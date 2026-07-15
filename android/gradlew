@@ -1,10 +1,6 @@
 
 ---
 
-## 7. gradlew (Wrapper Script)
-
-## android/gradlew
-```bash
 #!/bin/sh
 
 #
@@ -196,4 +192,4 @@ eval "set -- $(
     tr '\n' ' '
 )" '"$@"'
 
-exec "$JAVACMD" "$@"
+exec "$JAVACMD" "$@
