@@ -1,0 +1,116 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../widgets/gradient_button.dart';
+import '../widgets/custom_app_bar.dart';
+import 'scan_screen.dart';
+import 'hud_upload_screen.dart';
+import 'profiles_screen.dart';
+import 'history_screen.dart';
+import 'settings_screen.dart';
+import 'about_screen.dart';
+
+class HomeScreen extends StatelessWidget {
+  const HomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: const CustomAppBar(title: 'FF Sensitivity AI'),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          children: [
+            Expanded(
+              child: GridView.count(
+                crossAxisCount: 2,
+                crossAxisSpacing: 16,
+                mainAxisSpacing: 16,
+                children: [
+                  _buildMenuCard(
+                    context,
+                    'Start Scan',
+                    Icons.scanner,
+                    const Color(0xFF00D2FF),
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ScanScreen())),
+                  ),
+                  _buildMenuCard(
+                    context,
+                    'Upload HUD',
+                    Icons.upload_file,
+                    const Color(0xFFFF6B6B),
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HudUploadScreen())),
+                  ),
+                  _buildMenuCard(
+                    context,
+                    'Saved Profiles',
+                    Icons.save_alt,
+                    const Color(0xFF00E676),
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const ProfilesScreen())),
+                  ),
+                  _buildMenuCard(
+                    context,
+                    'History',
+                    Icons.history,
+                    const Color(0xFFFFD600),
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HistoryScreen())),
+                  ),
+                  _buildMenuCard(
+                    context,
+                    'Settings',
+                    Icons.settings,
+                    const Color(0xFF9C27B0),
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const SettingsScreen())),
+                  ),
+                  _buildMenuCard(
+                    context,
+                    'About',
+                    Icons.info,
+                    const Color(0xFF00BCD4),
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AboutScreen())),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMenuCard(BuildContext context, String title, IconData icon, Color color, VoidCallback onTap) {
+    return Card(
+      elevation: 8,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(20),
+        child: Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [color.withOpacity(0.3), color.withOpacity(0.1)],
+            ),
+          ),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, size: 48, color: color),
+              const SizedBox(height: 12),
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                  color: Colors.white,
+                ),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
