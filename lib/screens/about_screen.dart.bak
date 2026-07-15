@@ -1,0 +1,63 @@
+import 'package:flutter/material.dart';
+import 'package:url_launcher/url_launcher.dart';
+
+class AboutScreen extends StatelessWidget {
+  const AboutScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('About')),
+      body: Padding(
+        padding: const EdgeInsets.all(24.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            const Icon(Icons.games, size: 80, color: Color(0xFF00D2FF)),
+            const SizedBox(height: 20),
+            const Text('FF Sensitivity AI', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold)),
+            const Text('Version 1.0.0', style: TextStyle(color: Colors.grey)),
+            const SizedBox(height: 30),
+            const Divider(),
+            const SizedBox(height: 20),
+            const _InfoRow('Developer', '@UnknownGuy9876'),
+            const _InfoRow('Community', '@SGCodexs'),
+            const _InfoRow('Privacy', 'No data collected'),
+            const SizedBox(height: 30),
+            const Text(
+              'This app provides sensitivity recommendations based on device specs and user preferences. '
+              'It does not modify any game files or settings.',
+              textAlign: TextAlign.center,
+              style: TextStyle(color: Colors.grey),
+            ),
+            const Spacer(),
+            TextButton(
+              onPressed: () => launchUrl(Uri.parse('https://github.com/UnknownGuy9876/ff-sensitivity-ai')),
+              child: const Text('Visit GitHub'),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _InfoRow extends StatelessWidget {
+  final String label;
+  final String value;
+  const _InfoRow(this.label, this.value);
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.w500)),
+          Text(value, style: const TextStyle(color: Colors.grey)),
+        ],
+      ),
+    );
+  }
+}
