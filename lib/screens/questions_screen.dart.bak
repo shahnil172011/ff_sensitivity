@@ -1,0 +1,152 @@
+import 'package:flutter/material.dart';
+import '../models/device_model.dart';
+import '../models/user_preferences.dart';
+import 'hud_upload_screen.dart';
+
+class QuestionsScreen extends StatefulWidget {
+  final DeviceModel device;
+  const QuestionsScreen({super.key, required this.device});
+
+  @override
+  State<QuestionsScreen> createState() => _QuestionsScreenState();
+}
+
+class _QuestionsScreenState extends State<QuestionsScreen> {
+  bool _gyroscope = false;
+  int _fingers = 4;
+  String _playStyle = 'balanced';
+  int _fps = 60;
+  String _graphics = 'balanced';
+
+  final List<String> _playStyles = ['headshot', 'rush', 'balanced', 'sniper'];
+  final List<String> _graphicsOptions = ['smooth', 'balanced', 'hd', 'ultra'];
+  final List<int> _fpsOptions = [30, 60, 90, 120];
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Your Preferences')),
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildSwitch('Gyroscope', _gyroscope, (val) => setState(() => _gyroscope = val)),
+              const Divider(),
+              _buildFingerSelector(),
+              const Divider(),
+              _buildDropdown('Play Style', _playStyles, _playStyle, (val) => setState(() => _playStyle = val!)),
+              const Divider(),
+              _buildDropdown('Graphics', _graphicsOptions, _graphics, (val) => setState(() => _graphics = val!)),
+              const Divider(),
+              _buildFPSSelector(),
+              const SizedBox(height: 30),
+              ElevatedButton(
+                onPressed: () {
+                  final prefs = UserPreferences(
+                    gyroscopeOn: _gyroscope,
+                    fingerCount: _fingers,
+                    playStyle: _playStyle,
+                    fpsPreference: _fps,
+                    graphicsPreference: _graphics,
+                  );
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => HudUploadScreen(device: widget.device, preferences: prefs),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFF00D2FF),
+                  foregroundColor: Colors.black,
+                  minimumSize: const Size(double.infinity, 56),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                child: const Text('Next', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildSwitch(String title, bool value, Function(bool) onChanged) {
+    return SwitchListTile(
+      title: Text(title, style: const TextStyle(fontSize: 18)),
+      value: value,
+      onChanged: onChanged,
+      activeColor: const Color(0xFF00D2FF),
+    );
+  }
+
+  Widget _buildFingerSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Fingers', style: TextStyle(fontSize: 18)),
+        const SizedBox(height: 8),
+        Row(
+          children: [2, 3, 4, 5].map((int count) {
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: ChoiceChip(
+                  label: Text('$count'),
+                  selected: _fingers == count,
+                  onSelected: (_) => setState(() => _fingers = count),
+                  selectedColor: const Color(0xFF00D2FF),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDropdown(String label, List<String> items, String value, Function(String?) onChanged) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(label, style: const TextStyle(fontSize: 18)),
+        const SizedBox(height: 8),
+        DropdownButtonFormField<String>(
+          value: value,
+          items: items.map((e) => DropdownMenuItem(value: e, child: Text(e.toUpperCase()))).toList(),
+          onChanged: onChanged,
+          decoration: InputDecoration(
+            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFPSSelector() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('FPS Preference', style: TextStyle(fontSize: 18)),
+        const SizedBox(height: 8),
+        Row(
+          children: _fpsOptions.map((int val) {
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                child: ChoiceChip(
+                  label: Text('$val'),
+                  selected: _fps == val,
+                  onSelected: (_) => setState(() => _fps = val),
+                  selectedColor: const Color(0xFF00D2FF),
+                ),
+              ),
+            );
+          }).toList(),
+        ),
+      ],
+    );
+  }
+}
