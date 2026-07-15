@@ -1,0 +1,54 @@
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'core/theme/app_theme.dart';
+import 'core/theme/dark_theme.dart';
+import 'core/utils/permission_handler.dart';
+import 'screens/splash_screen.dart';
+import 'providers/profile_provider.dart';
+import 'providers/history_provider.dart';
+import 'providers/settings_provider.dart';
+
+void main() {
+  runApp(const FFSensitivityApp());
+}
+
+class FFSensitivityApp extends StatefulWidget {
+  const FFSensitivityApp({super.key});
+
+  @override
+  State<FFSensitivityApp> createState() => _FFSensitivityAppState();
+}
+
+class _FFSensitivityAppState extends State<FFSensitivityApp> {
+  @override
+  void initState() {
+    super.initState();
+    // Set context for permission handler
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      PermissionHandlerUtil.setContext(context);
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => ProfileProvider()),
+        ChangeNotifierProvider(create: (_) => HistoryProvider()),
+        ChangeNotifierProvider(create: (_) => SettingsProvider()),
+      ],
+      child: Consumer<SettingsProvider>(
+        builder: (context, settings, _) {
+          return MaterialApp(
+            title: 'FF Sensitivity AI',
+            theme: settings.isDarkMode ? darkTheme : appTheme,
+            debugShowCheckedModeBanner: false,
+            home: const SplashScreen(),
+            locale: Locale(settings.language),
+            supportedLocales: const [Locale('en'), Locale('es'), Locale('hi')],
+          );
+        },
+      ),
+    );
+  }
+}
