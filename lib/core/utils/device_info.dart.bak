@@ -1,0 +1,48 @@
+import 'dart:io';
+import 'package:device_info_plus/device_info_plus.dart';
+import 'package:screen/screen.dart';
+import '../../models/device_model.dart';
+
+class DeviceInfoUtil {
+  static final DeviceInfoPlugin _deviceInfo = DeviceInfoPlugin();
+
+  static Future<DeviceModel> getDeviceInfo() async {
+    if (Platform.isAndroid) {
+      final androidInfo = await _deviceInfo.androidInfo;
+      final ram = androidInfo.totalRam ?? 0;
+      final ramGB = (ram / (1024 * 1024 * 1024)).round();
+      
+      final screenWidth = Screen.width;
+      final screenHeight = Screen.height;
+      final screenSize = Screen.diagonalInches ?? 6.5;
+      final dpi = Screen.density ?? 2.0;
+      final refreshRate = Screen.refreshRate ?? 60.0;
+
+      return DeviceModel(
+        brand: androidInfo.brand,
+        model: androidInfo.model,
+        androidVersion: androidInfo.version.release,
+        ramGB: ramGB,
+        processor: androidInfo.hardware ?? 'Unknown',
+        gpu: androidInfo.supportedAbis.isNotEmpty ? androidInfo.supportedAbis[0] : 'Unknown',
+        batteryPercent: await _getBatteryLevel(),
+        storageGB: await _getStorageGB(),
+        screenResolution: '${screenWidth.round()}x${screenHeight.round()}',
+        screenSizeInches: screenSize,
+        refreshRate: refreshRate,
+        dpi: dpi * 160, // Approximate DPI
+      );
+    }
+    throw Exception('Only Android supported');
+  }
+
+  static Future<int> _getBatteryLevel() async {
+    // Real implementation would use battery_plus package
+    return 75; // Placeholder - implement with battery_plus
+  }
+
+  static Future<int> _getStorageGB() async {
+    // Real implementation with path_provider
+    return 128; // Placeholder
+  }
+}
