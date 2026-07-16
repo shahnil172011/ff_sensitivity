@@ -23,9 +23,11 @@ class _FFSensitivityAppState extends State<FFSensitivityApp> {
   @override
   void initState() {
     super.initState();
-    // Set context for permission handler
+    // Set context for permission handler after first frame
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      PermissionHandlerUtil.setContext(context);
+      if (mounted) {
+        PermissionHandlerUtil.setContext(context);
+      }
     });
   }
 
