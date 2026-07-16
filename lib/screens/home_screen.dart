@@ -111,7 +111,7 @@ class HomeScreen extends StatelessWidget {
                     Icons.upload_file,
                     const Color(0xFFFF6B6B),
                     'Analyze your layout',
-                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HudUploadScreen(device: null, preferences: null))),
+                    () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HudUploadScreen())),
                   ),
                   _buildMenuCard(
                     context,
@@ -220,4 +220,4 @@ class HomeScreen extends StatelessWidget {
       ),
     );
   }
-}
+}}
