@@ -1,20 +1,19 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:permission_handler/permission_handler.dart';
 import '../core/utils/permission_handler.dart';
 import '../models/device_model.dart';
 import '../models/user_preferences.dart';
 import 'hud_analysis_screen.dart';
 
 class HudUploadScreen extends StatefulWidget {
-  final DeviceModel device;
-  final UserPreferences preferences;
+  final DeviceModel? device;
+  final UserPreferences? preferences;
   
   const HudUploadScreen({
     super.key,
-    required this.device,
-    required this.preferences,
+    this.device,
+    this.preferences,
   });
 
   @override
@@ -34,27 +33,41 @@ class _HudUploadScreenState extends State<HudUploadScreen> {
   }
 
   Future<void> _checkPermission() async {
-    final hasPerm = await PermissionHandlerUtil.canAccessGallery(context);
-    setState(() {
-      _hasPermission = hasPerm;
-    });
+    try {
+      final hasPerm = await PermissionHandlerUtil.canAccessGallery(context);
+      if (mounted) {
+        setState(() {
+          _hasPermission = hasPerm;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() {
+          _hasPermission = false;
+        });
+      }
+    }
   }
 
   Future<void> _pickImage() async {
-    // Check permission first
+    // Check permission
     final hasPermission = await PermissionHandlerUtil.canAccessGallery(context);
     if (!hasPermission) {
-      setState(() {
-        _hasPermission = false;
-      });
-      _showPermissionDeniedDialog();
+      if (mounted) {
+        setState(() {
+          _hasPermission = false;
+        });
+        _showPermissionDeniedDialog();
+      }
       return;
     }
 
-    setState(() {
-      _hasPermission = true;
-      _isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        _hasPermission = true;
+        _isLoading = true;
+      });
+    }
 
     try {
       final XFile? image = await _picker.pickImage(
@@ -64,51 +77,53 @@ class _HudUploadScreenState extends State<HudUploadScreen> {
         imageQuality: 85,
       );
 
-      if (image != null) {
-        setState(() {
-          _imageFile = File(image.path);
-          _isLoading = false;
-        });
-        
-        // Show success snackbar
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('✅ Screenshot uploaded successfully!'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      } else {
-        setState(() {
-          _isLoading = false;
-        });
+      if (mounted) {
+        if (image != null) {
+          setState(() {
+            _imageFile = File(image.path);
+            _isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('✅ Screenshot uploaded successfully!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        } else {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      _showErrorDialog('Failed to pick image: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        _showErrorDialog('Failed to pick image: $e');
+      }
     }
   }
 
   Future<void> _takePhoto() async {
-    // Check camera permission
     final hasCameraPermission = await PermissionHandlerUtil.canAccessCamera(context);
     if (!hasCameraPermission) {
       _showPermissionDeniedDialog('Camera');
       return;
     }
 
-    // Check storage permission for saving
     final hasStoragePermission = await PermissionHandlerUtil.canAccessGallery(context);
     if (!hasStoragePermission) {
       _showPermissionDeniedDialog('Storage');
       return;
     }
 
-    setState(() {
-      _isLoading = true;
-    });
+    if (mounted) {
+      setState(() {
+        _isLoading = true;
+      });
+    }
 
     try {
       final XFile? image = await _picker.pickImage(
@@ -118,29 +133,32 @@ class _HudUploadScreenState extends State<HudUploadScreen> {
         imageQuality: 85,
       );
 
-      if (image != null) {
-        setState(() {
-          _imageFile = File(image.path);
-          _isLoading = false;
-        });
-        
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('📸 Photo captured successfully!'),
-            backgroundColor: Colors.green,
-            duration: Duration(seconds: 2),
-          ),
-        );
-      } else {
-        setState(() {
-          _isLoading = false;
-        });
+      if (mounted) {
+        if (image != null) {
+          setState(() {
+            _imageFile = File(image.path);
+            _isLoading = false;
+          });
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('📸 Photo captured successfully!'),
+              backgroundColor: Colors.green,
+              duration: Duration(seconds: 2),
+            ),
+          );
+        } else {
+          setState(() {
+            _isLoading = false;
+          });
+        }
       }
     } catch (e) {
-      setState(() {
-        _isLoading = false;
-      });
-      _showErrorDialog('Failed to capture photo: $e');
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+        _showErrorDialog('Failed to capture photo: $e');
+      }
     }
   }
 
@@ -148,7 +166,6 @@ class _HudUploadScreenState extends State<HudUploadScreen> {
     setState(() {
       _imageFile = null;
     });
-    
     ScaffoldMessenger.of(context).showSnackBar(
       const SnackBar(
         content: Text('🗑️ Image removed'),
@@ -199,11 +216,6 @@ class _HudUploadScreenState extends State<HudUploadScreen> {
                     ),
                   ],
                 ),
-              ),
-              const SizedBox(height: 8),
-              const Text(
-                'Please grant permission in settings and restart the app.',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
           ),
@@ -304,6 +316,26 @@ class _HudUploadScreenState extends State<HudUploadScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              CircularProgressIndicator(
+                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00D2FF)),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'Loading image...',
+                style: TextStyle(color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Upload HUD Screenshot'),
@@ -318,106 +350,90 @@ class _HudUploadScreenState extends State<HudUploadScreen> {
             ),
         ],
       ),
-      body: _isLoading
-          ? const Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF00D2FF)),
-                  ),
-                  SizedBox(height: 16),
-                  Text(
-                    'Loading image...',
-                    style: TextStyle(color: Colors.grey),
-                  ),
-                ],
+      body: Padding(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            // Header
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: const Color(0xFF00D2FF).withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(color: const Color(0xFF00D2FF).withOpacity(0.3)),
               ),
-            )
-          : Padding(
-              padding: const EdgeInsets.all(20.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.center,
+              child: Row(
                 children: [
-                  // Header section
                   Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF00D2FF).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: const Color(0xFF00D2FF).withOpacity(0.3)),
+                      color: const Color(0xFF00D2FF).withOpacity(0.2),
+                      borderRadius: BorderRadius.circular(12),
                     ),
-                    child: Row(
+                    child: const Icon(
+                      Icons.screenshot,
+                      size: 32,
+                      color: Color(0xFF00D2FF),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF00D2FF).withOpacity(0.2),
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: const Icon(
-                            Icons.screenshot,
-                            size: 32,
-                            color: Color(0xFF00D2FF),
+                        const Text(
+                          'HUD Screenshot Required',
+                          style: TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
-                        const SizedBox(width: 16),
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text(
-                                'HUD Screenshot Required',
-                                style: TextStyle(
-                                  fontSize: 18,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white,
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Upload a clear screenshot of your Free Fire HUD',
-                                style: TextStyle(
-                                  fontSize: 13,
-                                  color: Colors.grey.shade400,
-                                ),
-                              ),
-                            ],
+                        const SizedBox(height: 4),
+                        Text(
+                          'Upload a clear screenshot of your Free Fire HUD',
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.grey.shade400,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  
-                  const SizedBox(height: 24),
-                  
-                  // Image preview or upload area
-                  Expanded(
-                    child: _imageFile != null
-                        ? _buildImagePreview()
-                        : _buildUploadArea(),
-                  ),
-                  
-                  const SizedBox(height: 16),
-                  
-                  // Action buttons
-                  if (_imageFile == null) ...[
-                    _buildUploadButton(),
-                    const SizedBox(height: 12),
-                    _buildCameraButton(),
-                  ] else ...[
-                    _buildContinueButton(),
-                    const SizedBox(height: 12),
-                    _buildChangeButton(),
-                  ],
-                  
-                  const SizedBox(height: 8),
-                  
-                  // Tips text
-                  _buildTipsText(),
                 ],
               ),
             ),
+            
+            const SizedBox(height: 24),
+            
+            // Image preview or upload area
+            Expanded(
+              child: _imageFile != null
+                  ? _buildImagePreview()
+                  : _buildUploadArea(),
+            ),
+            
+            const SizedBox(height: 16),
+            
+            // Action buttons
+            if (_imageFile == null) ...[
+              _buildUploadButton(),
+              const SizedBox(height: 12),
+              _buildCameraButton(),
+            ] else ...[
+              _buildContinueButton(),
+              const SizedBox(height: 12),
+              _buildChangeButton(),
+            ],
+            
+            const SizedBox(height: 8),
+            
+            // Tips
+            _buildTipsText(),
+          ],
+        ),
+      ),
     );
   }
 
@@ -531,7 +547,7 @@ class _HudUploadScreenState extends State<HudUploadScreen> {
                 );
               },
             ),
-            // Overlay with image info
+            // Overlay
             Positioned(
               bottom: 0,
               left: 0,
@@ -648,118 +664,4 @@ class _HudUploadScreenState extends State<HudUploadScreen> {
   Widget _buildContinueButton() {
     return ElevatedButton(
       onPressed: () {
-        if (_imageFile != null) {
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => HudAnalysisScreen(
-                device: widget.device,
-                preferences: widget.preferences,
-                hudImage: _imageFile!,
-              ),
-            ),
-          );
-        }
-      },
-      style: ElevatedButton.styleFrom(
-        backgroundColor: Colors.green,
-        foregroundColor: Colors.white,
-        minimumSize: const Size(double.infinity, 56),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
-        elevation: 4,
-        shadowColor: Colors.green.withOpacity(0.4),
-      ),
-      child: const Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            'Continue to Analysis',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          SizedBox(width: 8),
-          Icon(Icons.arrow_forward, size: 24),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildChangeButton() {
-    return OutlinedButton.icon(
-      onPressed: _showImageOptions,
-      icon: const Icon(Icons.refresh, size: 20),
-      label: const Text(
-        'Change Image',
-        style: TextStyle(fontSize: 14),
-      ),
-      style: OutlinedButton.styleFrom(
-        foregroundColor: Colors.grey,
-        minimumSize: const Size(double.infinity, 44),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(12),
-        ),
-        side: BorderSide(
-          color: Colors.grey.shade600,
-          width: 1,
-        ),
-      ),
-    );
-  }
-
-  Widget _buildTipsText() {
-    return Container(
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.blue.withOpacity(0.05),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.withOpacity(0.1)),
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Icon(
-            Icons.lightbulb_outline,
-            size: 18,
-            color: Colors.amber.shade400,
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '💡 Tips for best results:',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey.shade300,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  '• Use a clear, well-lit screenshot\n'
-                  '• Include all HUD elements visible\n'
-                  '• Avoid overlays or notifications\n'
-                  '• Use in-game screenshot feature',
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: Colors.grey.shade400,
-                    height: 1.4,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  @override
-  void dispose() {
-    // Clean up temp files if needed
-    // Don't delete _imageFile as it's needed for analysis
-    super.dispose();
-  }
-}
+        if (_imageFile != null && widget.device != null &
